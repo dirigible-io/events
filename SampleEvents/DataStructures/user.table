@@ -1,0 +1,32 @@
+{
+  "tableName":"USER",
+  "columns":
+    [
+      {
+        "name":"ID_USER",
+        "type":"INTEGER",
+        "length":"0",
+        "notNull":"true",
+        "primaryKey":"true",
+        "defaultValue":""
+      }
+      ,
+      {
+        "name":"NAME",
+        "type":"VARCHAR",
+        "length":"100",
+        "notNull":"true",
+        "primaryKey":"false",
+        "defaultValue":""
+      }
+      ,
+      {
+        "name":"EMAIL",
+        "type":"VARCHAR",
+        "length":"100",
+        "notNull":"true",
+        "primaryKey":"false",
+        "defaultValue":""
+      }
+    ]
+}
