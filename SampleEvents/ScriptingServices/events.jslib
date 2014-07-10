@@ -160,10 +160,18 @@ exports.updateEvent = function() {
         sql += " WHERE ID_EVENT = ?";
         var statement = connection.prepareStatement(sql);
         var i = 0;
-        var js_date =  new Date(Date.parse(message.date_begining));
-        statement.setDate(++i, new java.sql.Date(js_date_date_begining.getTime() + js_date_date_begining.getTimezoneOffset()*60*1000));
-        var js_date =  new Date(Date.parse(message.date_end));
-        statement.setDate(++i, new java.sql.Date(js_date_date_end.getTime() + js_date_date_end.getTimezoneOffset()*60*1000));
+        var js_date_date_begining =  new Date(Date.parse(message.date_begining));
+        if(js_date_date_begining !== null) {
+            statement.setDate(++i, new java.sql.Date(js_date_date_begining.getTime() + js_date_date_begining.getTimezoneOffset()*60*1000));
+        } else {
+            statement.setDate(++i, null);
+        }
+        var js_date_date_end =  new Date(Date.parse(message.date_end));
+        if(js_date_date_end !== null) {
+            statement.setDate(++i, new java.sql.Date(js_date_date_end.getTime() + js_date_date_end.getTimezoneOffset()*60*1000));
+        } else {
+            statement.setDate(++i, null);
+        }
         var js_date_time_begining =  new Date(Date.parse(message.time_begining)); 
         statement.setTime(++i, new java.sql.Time(js_date_time_begining.getTime() + js_date_time_begining.getTimezoneOffset()*60*1000));
         var js_date_time_end =  new Date(Date.parse(message.time_end)); 

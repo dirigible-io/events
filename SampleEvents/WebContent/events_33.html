@@ -19,14 +19,13 @@
 </style>
 </head>
 <body>
-	<div id="wrap" ng-app ng-controller="ManageController">
+	<div id="wrap" ng-app="myevents" ng-controller="ManageController">
 		<div class="container">
 			<div class="alert alert-danger" ng-show="errorMessage">
 				{{errorMessage}}</div>
 			<table class="table table-condensed">
 				<thead>
 					<tr>
-						<th>id_event</th>
 						<th>date_begining</th>
                         <th>time_begining</th>
 						<th>date_end</th>
@@ -38,11 +37,10 @@
 				<tbody>
 					<tr class="selected-{{entry._selected_}}" ng-repeat="entry in data"
 						ng-click="showInfoForEntry(entry)">
-						<td>{{entry.id_event}}</td> 
-						<td>{{entry.date_begining}}</td> 
-                        <td>{{entry.time_begining}}</td> 
-						<td>{{entry.date_end}}</td> 
-						<td>{{entry.time_end}}</td> 
+						<td>{{entry.date_begining | date:'fullDate'}}</td> 
+                        <td>{{entry.time_begining | date:'HH:mm'}}</td> 
+						<td>{{entry.date_end | date:'fullDate'}}</td> 
+						<td>{{entry.time_end | date:'HH:mm'}}</td> 
 						<td>{{entry.description}}</td> 
 						<td>{{entry.location}}</td> 
 					</tr>
@@ -63,55 +61,29 @@
 			</div>
 			<br> <br>
 			<div>
-				<div ng-show="operation == 'show'">
-					<label>id_event</label>
-					<input type="text" class="form-control"
-						value={{selectedEntry.id_event}} readonly>
-					<br> 
-					<label>date_begining</label>
-					<input type="text" class="form-control"
-						value={{selectedEntry.date_begining}} readonly>
-					<br>
-                    <label>time_begining</label>
-    				<input type="text" class="form-control"
-						value={{selectedEntry.time_begining}} readonly>
-					<br> 
-					<label>date_end</label>
-					<input type="text" class="form-control"
-						value={{selectedEntry.date_end}} readonly>
-					<br>
-					<label>time_end</label>
-					<input type="text" class="form-control"
-						value={{selectedEntry.time_end}} readonly>
-					<br> 
-					<label>description</label>
-					<input type="text" class="form-control"
-						value={{selectedEntry.description}} readonly>
-					<br> 
-					<label>location</label>
-					<input type="text" class="form-control"
-						value={{selectedEntry.location}} readonly>
-					<br> 
-				</div>
 				<div ng-show="operation == 'new'">
-					<label>id_event</label> 
-					<input type="text"
-						class="form-control" value="Auto Generated" readonly> <br>
-					<label>date_begining</label> 
-					<input type="text" class="form-control" 
-						ng-model="newEntry.date_begining">
+					<label>date_begining</label>
+                    <p class="input-group">
+					    <input type="text" class="form-control" datepicker-popup="fullDate"
+						    ng-model="newEntry.date_begining" is-open="opened" >
+                        <span class="input-group-btn">
+                            <button type="button" class="btn btn-default" ng-click="open($event)"><i class="glyphicon glyphicon-calendar"></i></button>
+                        </span>
+                    </p> 
 					<br>
                     <label>time_begining</label> 
-    				<input type="text" class="form-control" 
-						ng-model="newEntry.time_begining">
+                    <timepicker ng-model="begin_time" show-meridian="false"></timepicker>
 					<br>
 					<label>date_end</label> 
-					<input type="text" class="form-control" 
-						ng-model="newEntry.date_end">
-					<br>
+					<p class="input-group">
+    				    <input type="text" class="form-control" datepicker-popup="fullDate"
+						    ng-model="newEntry.date_end" is-open="opened" >
+                        <span class="input-group-btn">
+                            <button type="button" class="btn btn-default" ng-click="open($event)"><i class="glyphicon glyphicon-calendar"></i></button>
+                        </span>
+                    </p>
 					<label>time_end</label> 
-					<input type="text" class="form-control" 
-						ng-model="newEntry.time_end">
+					<timepicker ng-model="end_time" show-meridian="false"></timepicker>
 					<br>
 					<label>description</label> 
 					<input type="text" class="form-control" 
@@ -122,11 +94,7 @@
 						ng-model="newEntry.location">
 					<br>
 				</div>
-				<div ng-show="operation == 'update'">
-					<label>id_event</label>
-					<input type="text" class="form-control" 
-						ng-model="selectedEntry.id_event" readonly>
-					<br> 
+				<div ng-show="operation == 'update'"> 
 					<label>date_begining</label> 
 					<input type="text" class="form-control"
 						ng-model="selectedEntry.date_begining"> 
@@ -164,27 +132,31 @@
 
 	<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.2/angular.min.js"></script>
 	<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.2/angular-resource.min.js"></script>
+    <script src="https://angular-ui.github.io/bootstrap/ui-bootstrap-tpls-0.11.0.js"></script>
 
 	<script type="text/javascript">
+        angular.module('myevents', ['ui.bootstrap']);
 		function ManageController($scope, $http){
 			
 			var url = '/dirigible/js/SampleEvents/events.js';
 			
 			$http.get(url)
 			.success(function(data){
-                var index;
+                /*var index;
                 for(index = 0; index < data.length; index++){
                     data[index].date_begining = $scope.parseDate(data[index].date_begining);
                     data[index].date_end = $scope.parseDate(data[index].date_end);
                     data[index].time_begining = $scope.parseTime(data[index].time_begining);
                     data[index].time_end = $scope.parseTime(data[index].time_end);
-                }
+                }*/
 				$scope.data = data;
 			});
 			
 			$scope.selectedEntry;
             $scope.operation = 'show';
             $scope.newEntry = null;
+            $scope.begin_time = new Date();
+            $scope.end_time = new Date();
             $scope.errorMessage = null;
 			
 			$scope.showInfoForEntry = function(entry) {
@@ -243,10 +215,10 @@
                     case 'show':
                         break;
                     case 'new':
-                        $scope.newEntry.date_begining = $scope.createDate($scope.newEntry.date_begining);
-                        $scope.newEntry.date_end = $scope.createDate($scope.newEntry.date_end);
-                        $scope.newEntry.time_begining = $scope.createTime($scope.newEntry.time_begining);
-                        $scope.newEntry.time_end = $scope.createTime($scope.newEntry.time_end);
+                        //$scope.newEntry.date_begining = $scope.createDate($scope.newEntry.date_begining);
+                        //$scope.newEntry.date_end = $scope.createDate($scope.newEntry.date_end);
+                        $scope.newEntry.time_begining = $scope.begin_time;
+                        $scope.newEntry.time_end = $scope.end_time;
                         newEntry($scope.newEntry);
                         break;
                     case 'update':
@@ -322,15 +294,17 @@
 			function refreshData(){
 				$http.get(url)
 				.success(function(data){
-                    var index;
+                    /*var index;
                     for(index = 0; index < data.length; index++){
                         data[index].date_begining = $scope.parseDate(data[index].date_begining);
                         data[index].date_end = $scope.parseDate(data[index].date_end);
                         data[index].time_begining = $scope.parseTime(data[index].time_begining);
                         data[index].time_end = $scope.parseTime(data[index].time_end);
-                    }
+                    }*/
 					$scope.data = data;
                 	$scope.newEntry = null;
+                    $scope.begin_time = new Date();
+                    $scope.end_time = new Date();
                     $scope.selectedEntry = null;
                     $scope.operation = 'show';
                     $scope.errorMessage = null;
@@ -357,6 +331,13 @@
             $scope.createTime = function(timeString){
                 return "1970-01-01T" + timeString + ":00.000Z";
             }
+            
+            $scope.open = function($event) {
+                $event.preventDefault();
+                $event.stopPropagation();
+
+                $scope.opened = true;
+            };
 		}
         
 	</script>
