@@ -16,6 +16,15 @@
 	background-color: #428bca;
 	color: white;
 }
+
+.invalid-true {
+    background-color: #d9534f;
+    border-radius: 5px;
+}
+
+#spacing {
+    width: 50px;
+}
 </style>
 </head>
 <body>
@@ -26,12 +35,12 @@
 			<table class="table table-condensed">
 				<thead>
 					<tr>
-						<th>date_begining</th>
-                        <th>time_begining</th>
-						<th>date_end</th>
-						<th>time_end</th>
-						<th>description</th>
-						<th>location</th>
+						<th>Begining</th>
+                        <th></th>
+						<th>End</th>
+						<th></th>
+						<th>Description</th>
+						<th>Location</th>
 					</tr>
 				</thead>
 				<tbody>
@@ -62,40 +71,67 @@
 			<br> <br>
 			<div>
 				<div ng-show="operation == 'new'">
-					<label>date_begining</label>
-                    <p class="input-group">
-					    <input type="text" class="form-control" datepicker-popup="fullDate"
-						    ng-model="newEntry.date_begining" is-open="opened" >
-                        <span class="input-group-btn">
-                            <button type="button" class="btn btn-default" ng-click="open($event)"><i class="glyphicon glyphicon-calendar"></i></button>
-                        </span>
-                    </p> 
+                    <table>
+                        <tr>
+                            <th>Begining</th>
+                        </tr>
+                        <tr>
+                            <td><datepicker ng-model="begin_date" min-date="today" max-date="newEntry.date_end"></datepicker></td>
+                            <td id="spacing"></td>
+                            <td><timepicker ng-model="begin_time" show-meridian="false"></timepicker></td>
+                        </tr>
+                    </table>
+                    <br>
+                    <table>
+                        <tr>
+                            <th>End</th>
+                        </tr>
+                        <tr>
+                            <td><datepicker ng-model="newEntry.date_end" min-date="begin_date"></datepicker></td>
+                            <td id="spacing"></td>
+                            <td><timepicker ng-model="end_time" show-meridian="false" class="invalid-{{begin_time > end_time && begin_date >= newEntry.date_end}}"></timepicker></td>
+                        </tr>
+                    </table>
 					<br>
-                    <label>time_begining</label> 
-                    <timepicker ng-model="begin_time" show-meridian="false"></timepicker>
-					<br>
-					<label>date_end</label> 
-					<p class="input-group">
-    				    <input type="text" class="form-control" datepicker-popup="fullDate"
-						    ng-model="newEntry.date_end" is-open="opened" >
-                        <span class="input-group-btn">
-                            <button type="button" class="btn btn-default" ng-click="open($event)"><i class="glyphicon glyphicon-calendar"></i></button>
-                        </span>
-                    </p>
-					<label>time_end</label> 
-					<timepicker ng-model="end_time" show-meridian="false"></timepicker>
-					<br>
-					<label>description</label> 
-					<input type="text" class="form-control" 
-						ng-model="newEntry.description">
-					<br>
-					<label>location</label> 
-					<input type="text" class="form-control" 
+                    <label>Location</label> 
+    				<input type="text" class="form-control" 
 						ng-model="newEntry.location">
 					<br>
+					<label>Description</label> 
+                    <textarea class="form-control" ng-model="newEntry.description"></textarea>
+					<br>
 				</div>
-				<div ng-show="operation == 'update'"> 
-					<label>date_begining</label> 
+				<div ng-show="operation == 'update'">
+                    <table>
+                        <tr>
+                            <th>Begining</th>
+                        </tr>
+                        <tr>
+                            <td><datepicker ng-model="begin_date" min-date="today" max-date="end_date"></datepicker></td>
+                            <td id="spacing"></td>
+                            <td><timepicker ng-model="begin_time" show-meridian="false"></timepicker></td>
+                        </tr>
+                    </table>
+                    <br>
+                    <table>
+                        <tr>
+                            <th>End</th>
+                        </tr>
+                        <tr>
+                            <td><datepicker ng-model="end_date" min-date="begin_date"></datepicker></td>
+                            <td id="spacing"></td>
+                            <td><timepicker ng-model="end_time" show-meridian="false" class="invalid-{{begin_time > end_time && begin_date >= end_date}}"></timepicker></td>
+                        </tr>
+                    </table>
+    				<br>
+                    <label>Location</label> 
+    				<input type="text" class="form-control" 
+						ng-model="selectedEntry.location">
+					<br>
+					<label>Description</label> 
+                    <textarea class="form-control" ng-model="selectedEntry.description"></textarea>
+					<br>
+					<!-- <label>date_begining</label> 
 					<input type="text" class="form-control"
 						ng-model="selectedEntry.date_begining"> 
 					<br>
@@ -118,11 +154,11 @@
 					<label>location</label> 
 					<input type="text" class="form-control"
 						ng-model="selectedEntry.location"> 
-					<br>
+					<br> -->
 				</div>
 				<div class="btn-group">
 					<input class="btn btn-primary" type="button" value="Save" ng-show="operation == 'new' || operation == 'update'"
-						ng-click="confirmAction()"> 
+						ng-click="confirmAction()" ng-disabled="begin_time > end_time && newEntry.date_begining >= newEntry.date_end"> 
 					<input class="btn btn-default" type="button" value="Cancel" ng-show="operation == 'new' || operation == 'update'"
 						ng-click="cancelAction()">
 				</div>
@@ -142,19 +178,13 @@
 			
 			$http.get(url)
 			.success(function(data){
-                /*var index;
-                for(index = 0; index < data.length; index++){
-                    data[index].date_begining = $scope.parseDate(data[index].date_begining);
-                    data[index].date_end = $scope.parseDate(data[index].date_end);
-                    data[index].time_begining = $scope.parseTime(data[index].time_begining);
-                    data[index].time_end = $scope.parseTime(data[index].time_end);
-                }*/
 				$scope.data = data;
 			});
 			
 			$scope.selectedEntry;
             $scope.operation = 'show';
             $scope.newEntry = null;
+            $scope.begin_date = new Date();
             $scope.begin_time = new Date();
             $scope.end_time = new Date();
             $scope.errorMessage = null;
@@ -172,6 +202,10 @@
 						entry._selected_ = true;
 						$scope.showEntry = true;
 						$scope.selectedEntry = entry;
+                        $scope.begin_date = new Date($scope.selectedEntry.date_begining);
+                        $scope.end_date = new Date($scope.selectedEntry.date_end);
+                        $scope.begin_time = new Date($scope.selectedEntry.time_begining);
+                        $scope.end_time = new Date($scope.selectedEntry.time_end);
 					}
 				}
 			}
@@ -215,17 +249,18 @@
                     case 'show':
                         break;
                     case 'new':
-                        //$scope.newEntry.date_begining = $scope.createDate($scope.newEntry.date_begining);
-                        //$scope.newEntry.date_end = $scope.createDate($scope.newEntry.date_end);
+                        $scope.newEntry.date_begining = $scope.begin_date;
+                        $scope.newEntry.date_begining.setHours($scope.newEntry.date_begining.getHours() - $scope.newEntry.date_begining.getTimezoneOffset()/60);
+                        $scope.newEntry.date_end.setHours($scope.newEntry.date_end.getHours() - $scope.newEntry.date_end.getTimezoneOffset()/60);
                         $scope.newEntry.time_begining = $scope.begin_time;
                         $scope.newEntry.time_end = $scope.end_time;
                         newEntry($scope.newEntry);
                         break;
                     case 'update':
-                        $scope.selectedEntry.date_begining = $scope.createDate($scope.selectedEntry.date_begining);
-                        $scope.selectedEntry.date_end = $scope.createDate($scope.selectedEntry.date_end);
-                        $scope.selectedEntry.time_begining = $scope.createTime($scope.selectedEntry.time_begining);
-                        $scope.selectedEntry.time_end = $scope.createTime($scope.selectedEntry.time_end);
+                        $scope.selectedEntry.date_begining = $scope.begin_date;
+                        $scope.selectedEntry.date_end = $scope.end_date;
+                        $scope.selectedEntry.time_begining = $scope.begin_time;
+                        $scope.selectedEntry.time_end = $scope.end_time;
                         updateEntry($scope.selectedEntry);
                         break;
                 }
@@ -294,15 +329,9 @@
 			function refreshData(){
 				$http.get(url)
 				.success(function(data){
-                    /*var index;
-                    for(index = 0; index < data.length; index++){
-                        data[index].date_begining = $scope.parseDate(data[index].date_begining);
-                        data[index].date_end = $scope.parseDate(data[index].date_end);
-                        data[index].time_begining = $scope.parseTime(data[index].time_begining);
-                        data[index].time_end = $scope.parseTime(data[index].time_end);
-                    }*/
 					$scope.data = data;
                 	$scope.newEntry = null;
+                    $scope.begin_date = new Date();
                     $scope.begin_time = new Date();
                     $scope.end_time = new Date();
                     $scope.selectedEntry = null;
@@ -314,30 +343,7 @@
 				});
 			}
             
-            $scope.parseDate = function(dateString){
-                var parts = dateString.split("T")[0].split("-");
-                return parts[2] + "-" + parts[1] + "-" + parts[0];
-            }
-            
-            $scope.createDate = function(dateString){
-                var parts = dateString.split("-");
-                return parts[2] + "-" + parts[1] + "-" + parts[0] + "T00:00:00.000Z";
-            }
-            
-            $scope.parseTime = function(timeString){
-                return timeString.slice(11, 16);
-            }
-            
-            $scope.createTime = function(timeString){
-                return "1970-01-01T" + timeString + ":00.000Z";
-            }
-            
-            $scope.open = function($event) {
-                $event.preventDefault();
-                $event.stopPropagation();
-
-                $scope.opened = true;
-            };
+            $scope.today = Date.now();
 		}
         
 	</script>
