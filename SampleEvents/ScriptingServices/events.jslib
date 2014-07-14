@@ -58,6 +58,17 @@ exports.createEvents = function() {
         statement.setString(++i, message.description);
         statement.setInt(++i, message.creator_id);
         statement.executeUpdate();
+        var index;
+        sql = "INSERT INTO PARTICIPANTS (ID, EVENT_ID, USER_ID) VALUES (?,?,?)"
+        for(index = 0; index < message.participants.length; index++){
+            i = 0;
+            statement = connection.prepareStatement(sql);
+            var idp = db.getNext("PARTICIPANTS_ID");
+            statement.setInt(++i, idp);
+            statement.setInt(++i, id);
+            statement.setInt(++i, message.participants[index].user_id);
+            statement.executeUpdate();
+        }
         response.getWriter().println(id);
         return id;
     } catch(e) {
