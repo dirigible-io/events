@@ -45,7 +45,7 @@
 						<th></th>
 						<th>Location</th>
 						<th>Description</th>
-                        <th>Creator ID</th>
+                        <th>Participants</th>
 					</tr>
 				</thead>
 				<tbody>
@@ -57,7 +57,7 @@
 						<td>{{entry.time_end.slice(11,16)}}</td> 
 						<td>{{entry.location}}</td> 
 						<td>{{entry.description}}</td> 
-                        <td>{{entry.creator_id}}</td>
+                        <td>{{entry.participants.toString()}}</td>
 					</tr>
 				</tbody>
 			</table>
@@ -203,6 +203,7 @@
 			$http.get(url)
 			.success(function(data){
 				$scope.data = data;
+                $scope.createParticipantsList();
 			});
             
 			$scope.selectedEntry;
@@ -214,6 +215,19 @@
             $scope.errorMessage = null;
             
             $scope.today = Date.now();
+            
+            $scope.createParticipantsList = function(){
+                var index1;
+                var index2;
+                var participantsList = [];
+                for(index1 = 0; index1 < $scope.data.length; index1++){
+                    participantsList = [];
+                    for(index2 = 0; index2 < $scope.data[index1].participants.length; index2++){
+                        participantsList.push($scope.users[$scope.data[index1].participants[index2] - 1].full_name);
+                    }
+                    $scope.data[index1].participants = participantsList;
+                }
+            }
             
             $scope.addParticipant = function(location){
                 $scope.pError = "";
@@ -410,6 +424,7 @@
 				$http.get(url)
 				.success(function(data){
 					$scope.data = data;
+                    $scope.createParticipantsList();
                 	$scope.newEntry = {participants: []};
                     $scope.newEntry.participants.push($scope.loggedUser)
                     $scope.begin_date = new Date();

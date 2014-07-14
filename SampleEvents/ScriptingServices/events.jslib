@@ -146,16 +146,34 @@ exports.readEventsList = function(limit, offset, sort, desc) {
 
 //create entity as JSON object from ResultSet current Row
 function createEntity(resultSet, data) {
-    var result = {};
-	result.event_id = resultSet.getInt("EVENT_ID");
-    result.date_begining = new Date(resultSet.getDate("DATE_BEGINING").getTime() - resultSet.getDate("DATE_BEGINING").getTimezoneOffset()*60*1000);
-    result.time_begining = new Date(resultSet.getTime("TIME_BEGINING").getTime() - resultSet.getDate("TIME_BEGINING").getTimezoneOffset()*60*1000);
-    result.date_end = new Date(resultSet.getDate("DATE_END").getTime() - resultSet.getDate("DATE_END").getTimezoneOffset()*60*1000);
-    result.time_end = new Date(resultSet.getTime("TIME_END").getTime() - resultSet.getDate("TIME_END").getTimezoneOffset()*60*1000);
-    result.location = resultSet.getString("LOCATION");
-    result.description = resultSet.getString("DESCRIPTION");
-	result.creator_id = resultSet.getInt("CREATOR_ID");
-    return result;
+    var connection = datasource.getConnection();
+    var i = 0;
+    response.setCharacterEncoding("UTF-8");
+    try{
+        var result = {};
+        result.event_id = resultSet.getInt("EVENT_ID");
+        result.date_begining = new Date(resultSet.getDate("DATE_BEGINING").getTime() - resultSet.getDate("DATE_BEGINING").getTimezoneOffset()*60*1000);
+        result.time_begining = new Date(resultSet.getTime("TIME_BEGINING").getTime() - resultSet.getDate("TIME_BEGINING").getTimezoneOffset()*60*1000);
+        result.date_end = new Date(resultSet.getDate("DATE_END").getTime() - resultSet.getDate("DATE_END").getTimezoneOffset()*60*1000);
+        result.time_end = new Date(resultSet.getTime("TIME_END").getTime() - resultSet.getDate("TIME_END").getTimezoneOffset()*60*1000);
+        result.location = resultSet.getString("LOCATION");
+        result.description = resultSet.getString("DESCRIPTION");
+        result.creator_id = resultSet.getInt("CREATOR_ID");
+        var sql = "SELECT USER_ID FROM PARTICIPANTS WHERE EVENT_ID = ?";
+        var statement = connection.prepareStatement(sql);
+        statement.setInt(++i, result.event_id);
+        var results = statement.executeQuery();
+        result.participants = [];
+        while(results.next()){
+            result.participants.push(results.getInt("USER_ID"));
+        }
+        return result;
+    } catch (e) {
+        var errorCode = javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
+        entityLib.printError(errorCode, errorCode, e.message);
+    } finally {
+        connection.close();
+    }
 };
 
 // update entity by id
