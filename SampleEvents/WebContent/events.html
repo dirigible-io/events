@@ -32,8 +32,11 @@
 		<div class="container">
 			<div class="alert alert-danger" ng-show="errorMessage">
 				{{errorMessage}}</div>
+            <div class="alert alert-info" ng-show="date.length == 0">
+                Looks like you have no events. You can add some by clicking the "New" button.
+            </div>
             Logged in as <b>{{loggedUser.full_name}} ({{loggedUser.user_name}})</b>
-			<table class="table table-condensed">
+			<table class="table table-condensed" ng-show="data.length > 0">
 				<thead>
 					<tr>
 						<th>Begining</th>
@@ -42,30 +45,34 @@
 						<th></th>
 						<th>Location</th>
 						<th>Description</th>
+                        <th>Creator ID</th>
 					</tr>
 				</thead>
 				<tbody>
 					<tr class="selected-{{entry._selected_}}" ng-repeat="entry in data"
 						ng-click="showInfoForEntry(entry)">
 						<td>{{entry.date_begining | date:'fullDate'}}</td> 
-						<td>{{entry.time_begining | date:'HH:mm'}}</td> 
+						<td>{{entry.time_begining.slice(11,16)}}</td> 
 						<td>{{entry.date_end | date:'fullDate'}}</td> 
-						<td>{{entry.time_end | date:'HH:mm'}}</td> 
+						<td>{{entry.time_end.slice(11,16)}}</td> 
 						<td>{{entry.location}}</td> 
 						<td>{{entry.description}}</td> 
+                        <td>{{entry.creator_id}}</td>
 					</tr>
 				</tbody>
 			</table>
 			<hr>
 			<br>
-			<div class="btn-group">
-				<input class="btn btn-default" type="button" value="New"
-					ng-click="setOperation('new')"
-					ng-disabled="errorMessage || operation == 'update'"> <input
-					class="btn btn-default" type="button" value="Edit"
+			<input class="btn btn-default" type="button" value="New"
+				ng-click="setOperation('new')"
+				ng-disabled="errorMessage || operation == 'update'"> 
+            <div class="btn-group">
+                <input class="btn btn-default" type="button" value="Edit"
+                    ng-show="selectedEntry.creator_id == loggedUser.user_id"
 					ng-click="setOperation('update')"
-					ng-disabled="errorMessage || operation == 'new'"> <input
-					class="btn btn-default" type="button" value="Delete"
+					ng-disabled="errorMessage || operation == 'new'"> 
+                <input class="btn btn-default" type="button" value="Delete"
+                    ng-show="selectedEntry.creator_id == loggedUser.user_id"
 					ng-click="delete()"
 					ng-disabled="errorMessage || operation == 'new' || operation == 'update'">
 			</div>
@@ -101,6 +108,22 @@
 					<label>Description</label> 
                     <textarea class="form-control" ng-model="newEntry.description"></textarea>
 					<br>
+                    <label>Participants</label>
+                    <ul class="unstyled">
+                        <li ng-repeat="participant in newEntry.participants">
+                            <b tooltip="{{participant.email}}">{{participant.full_name}} ({{participant.user_name}})</b>
+                        </li>
+                    </ul>
+                    <alert type="danger" ng-show="pError">{{pError}}</alert>
+                    <input type="text" placeholder="Add participant..." ng-model="newParticipant">
+                    <input class="btn btn-primary" type="button" value="Add" ng-click="addParticipant(newEntry.participants)">
+                    <br>
+                    <div class="btn-group">
+    				    <input class="btn btn-primary" type="button" value="Save" ng-show="operation == 'new'"
+						    ng-click="confirmAction()" ng-disabled="begin_time > end_time && newEntry.date_begining >= newEntry.date_end"> 
+					    <input class="btn btn-default" type="button" value="Cancel" ng-show="operation == 'new'"
+					    	ng-click="cancelAction()">
+				    </div>
 				</div>
 				<div ng-show="operation == 'update'">
 					<table>
@@ -108,7 +131,7 @@
                             <th>Begining</th>
                         </tr>
                         <tr>
-                            <td><datepicker ng-model="begin_date" min-date="today" max-date="end_date"></datepicker></td>
+                            <td><datepicker ng-model="begin_date" min-date="selectedEntry.date_begining" max-date="end_date"></datepicker></td>
                             <td id="spacing"></td>
                             <td><timepicker ng-model="begin_time" show-meridian="false"></timepicker></td>
                         </tr>
@@ -132,13 +155,14 @@
 					<label>Description</label> 
                     <textarea class="form-control" ng-model="selectedEntry.description"></textarea>
 					<br>
+          			<div class="btn-group">
+					    <input class="btn btn-primary" type="button" value="Save" ng-show="operation == 'update'"
+						    ng-click="confirmAction()" ng-disabled="begin_time > end_time && begin_date >= end_date"> 
+					    <input class="btn btn-default" type="button" value="Cancel" ng-show="operation == 'update'"
+				    		ng-click="cancelAction()">
+		    		</div>
 				</div>
-				<div class="btn-group">
-					<input class="btn btn-primary" type="button" value="Save" ng-show="operation == 'new' || operation == 'update'"
-						ng-click="confirmAction()" ng-disabled="begin_time > end_time && newEntry.date_begining >= newEntry.date_end"> 
-					<input class="btn btn-default" type="button" value="Cancel" ng-show="operation == 'new' || operation == 'update'"
-						ng-click="cancelAction()">
-				</div>
+
 			</div>
 		</div>
 	</div>
@@ -155,14 +179,25 @@
             $http.get(url)
             .success(function(data){
                 $scope.p_user = data
-            })
+            });
 			
              url = '/dirigible/js/SampleEvents/user_list.js';
             $http.get(url)
             .success(function(data){
                 $scope.users = data;
-                findUserData($scope.p_user);
-            })
+                if(!findUserData($scope.p_user)){
+                    $scope.newUser = {user_name: $scope.p_user};
+                    while(($scope.newUser.full_name = prompt("Hello! It seems like this is your first time here!\nEnter your name (First name and Last name prefered)","")) == ""){}
+                    while(!(validateEmail($scope.newUser.email = prompt("Enter your email", "")))){}
+                    $http.post(url, $scope.newUser)
+                    .success(function(){
+                        refreshUserData();
+                    })
+                    .error(function(response){
+    			    	$scope.errorMessage = response.err.message;
+				    });
+                }
+            });
             
             url = '/dirigible/js/SampleEvents/events.js';
 			$http.get(url)
@@ -172,7 +207,7 @@
             
 			$scope.selectedEntry;
             $scope.operation = 'show';
-            $scope.newEntry = null;
+            $scope.newEntry = {participants: []};
             $scope.begin_date = new Date();
             $scope.begin_time = new Date();
             $scope.end_time = new Date();
@@ -180,14 +215,51 @@
             
             $scope.today = Date.now();
             
+            $scope.addParticipant = function(location){
+                $scope.pError = "";
+                if(!findUser($scope.newParticipant, location)){
+                    $scope.pError = "This user does not exist!";
+                }            
+                $scope.newParticipant = "";
+            }
+            
+            function findUser(name, location){
+                var index;
+                for(index = 0; index < $scope.users.length; index++){
+                    if($scope.users[index].full_name.trim() == name.trim()){
+                        location.push($scope.users[index]);
+                        return true;
+                    }
+                }
+                return false;
+            }
+            
+            function refreshUserData(){
+                var userUrl = '/dirigible/js/SampleEvents/user_list.js';
+                
+                $http.get(url)
+                .success(function(data){
+                    $scope.users = data;
+                    findUserData($scope.p_user);
+                });
+            }
+            
+            function validateEmail(email) { 
+                var re = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+                return re.test(email);
+            } 
+            
             function findUserData(p_user){
                 var index;
                 for(index = 0; index < $scope.users.length; index++){
                     if($scope.users[index].user_name.trim() == $scope.p_user.trim()){
                         $scope.loggedUser = $scope.users[index];
-                        break;
+                        $scope.newEntry.participants.push($scope.loggedUser);
+                        console.log($scope.newEntry.participants[0].user_name);
+                        return true;
                     }
                 }
+                return false;
             }
 			
 			$scope.showInfoForEntry = function(entry) {
@@ -203,8 +275,6 @@
 						entry._selected_ = true;
 						$scope.showEntry = true;
 						$scope.selectedEntry = entry;
-                        console.log($scope.selectedEntry.time_begining);
-                        console.log(new Date($scope.selectedEntry.time_begining));
                         $scope.begin_date = new Date($scope.selectedEntry.date_begining);
                         $scope.end_date = new Date($scope.selectedEntry.date_end);
                         $scope.begin_time = new Date($scope.selectedEntry.time_begining);
@@ -253,12 +323,17 @@
                         break;
                     case 'new':
                         $scope.newEntry.date_begining = $scope.begin_date;
-                        $scope.newEntry.date_begining.setHours($scope.newEntry.date_begining.getHours() - $scope.newEntry.date_begining.getTimezoneOffset()/60);
-                        $scope.newEntry.date_end.setHours($scope.newEntry.date_end.getHours() - $scope.newEntry.date_end.getTimezoneOffset()/60);
+                        $scope.newEntry.date_begining.setMinutes($scope.newEntry.date_begining.getMinutes() - $scope.newEntry.date_begining.getTimezoneOffset());
+                        $scope.newEntry.date_end.setMinutes($scope.newEntry.date_end.getMinutes() - $scope.newEntry.date_end.getTimezoneOffset());
                         $scope.newEntry.time_begining = $scope.begin_time;
-                        console.log($scope.begin_time);
                         $scope.newEntry.time_end = $scope.end_time;
-                        $scope.newEntry.creator_id = 1;
+                        if($scope.newEntry.location == null){
+                            $scope.newEntry.location = "";
+                        }
+                        if($scope.newEntry.description == null){
+                            $scope.newEntry.description = "";
+                        }
+                        $scope.newEntry.creator_id = $scope.loggedUser.user_id;
                         newEntry($scope.newEntry);
                         break;
                     case 'update':
@@ -335,7 +410,8 @@
 				$http.get(url)
 				.success(function(data){
 					$scope.data = data;
-                	$scope.newEntry = null;
+                	$scope.newEntry = {participants: []};
+                    $scope.newEntry.participants.push($scope.loggedUser)
                     $scope.begin_date = new Date();
                     $scope.begin_time = new Date();
                     $scope.end_time = new Date();
