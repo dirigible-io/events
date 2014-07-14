@@ -22,152 +22,17 @@
     border-radius: 5px;
 }
 
-#spacing {
+.username {
+    float: right;
+    margin-bottom: 20px;
+}
+
+.spacing {
     width: 50px;
 }
 </style>
-</head>
-<body>
-	<div id="wrap" ng-app="myevents" ng-controller="ManageController">
-		<div class="container">
-			<div class="alert alert-danger" ng-show="errorMessage">
-				{{errorMessage}}</div>
-            <div class="alert alert-info" ng-show="date.length == 0">
-                Looks like you have no events. You can add some by clicking the "New" button.
-            </div>
-            Logged in as <b>{{loggedUser.full_name}} ({{loggedUser.user_name}})</b>
-			<table class="table table-condensed" ng-show="data.length > 0">
-				<thead>
-					<tr>
-						<th>Begining</th>
-						<th></th>
-						<th>End</th>
-						<th></th>
-						<th>Location</th>
-						<th>Description</th>
-                        <th>Participants</th>
-					</tr>
-				</thead>
-				<tbody>
-					<tr class="selected-{{entry._selected_}}" ng-repeat="entry in data"
-						ng-click="showInfoForEntry(entry)">
-						<td>{{entry.date_begining | date:'fullDate'}}</td> 
-						<td>{{entry.time_begining.slice(11,16)}}</td> 
-						<td>{{entry.date_end | date:'fullDate'}}</td> 
-						<td>{{entry.time_end.slice(11,16)}}</td> 
-						<td>{{entry.location}}</td> 
-						<td>{{entry.description}}</td> 
-                        <td>{{entry.participants.toString()}}</td>
-					</tr>
-				</tbody>
-			</table>
-			<hr>
-			<br>
-			<input class="btn btn-default" type="button" value="New"
-				ng-click="setOperation('new')"
-				ng-disabled="errorMessage || operation == 'update'"> 
-            <div class="btn-group">
-                <input class="btn btn-default" type="button" value="Edit"
-                    ng-show="selectedEntry.creator_id == loggedUser.user_id"
-					ng-click="setOperation('update')"
-					ng-disabled="errorMessage || operation == 'new'"> 
-                <input class="btn btn-default" type="button" value="Delete"
-                    ng-show="selectedEntry.creator_id == loggedUser.user_id"
-					ng-click="delete()"
-					ng-disabled="errorMessage || operation == 'new' || operation == 'update'">
-			</div>
-			<br> <br>
-			<div>
-				<div ng-show="operation == 'new'">
-					<table>
-                        <tr>
-                            <th>Begining</th>
-                        </tr>
-                        <tr>
-                            <td><datepicker ng-model="begin_date" min-date="today" max-date="newEntry.date_end"></datepicker></td>
-                            <td id="spacing"></td>
-                            <td><timepicker ng-model="begin_time" show-meridian="false"></timepicker></td>
-                        </tr>
-                    </table>
-                    <br>
-                    <table>
-                        <tr>
-                            <th>End</th>
-                        </tr>
-                        <tr>
-                            <td><datepicker ng-model="newEntry.date_end" min-date="begin_date"></datepicker></td>
-                            <td id="spacing"></td>
-                            <td><timepicker ng-model="end_time" show-meridian="false" class="invalid-{{begin_time > end_time && begin_date >= newEntry.date_end}}"></timepicker></td>
-                        </tr>
-                    </table>
-    				<br>
-                    <label>Location</label> 
-    				<input type="text" class="form-control" 
-						ng-model="newEntry.location">
-					<br>
-					<label>Description</label> 
-                    <textarea class="form-control" ng-model="newEntry.description"></textarea>
-					<br>
-                    <label>Participants</label>
-                    <ul class="unstyled">
-                        <li ng-repeat="participant in newEntry.participants">
-                            <b tooltip="{{participant.email}}">{{participant.full_name}} ({{participant.user_name}})</b>
-                        </li>
-                    </ul>
-                    <alert type="danger" ng-show="pError">{{pError}}</alert>
-                    <input type="text" placeholder="Add participant..." ng-model="newParticipant">
-                    <input class="btn btn-primary" type="button" value="Add" ng-click="addParticipant(newEntry.participants)">
-                    <br>
-                    <div class="btn-group">
-    				    <input class="btn btn-primary" type="button" value="Save" ng-show="operation == 'new'"
-						    ng-click="confirmAction()" ng-disabled="begin_time > end_time && newEntry.date_begining >= newEntry.date_end"> 
-					    <input class="btn btn-default" type="button" value="Cancel" ng-show="operation == 'new'"
-					    	ng-click="cancelAction()">
-				    </div>
-				</div>
-				<div ng-show="operation == 'update'">
-					<table>
-                        <tr>
-                            <th>Begining</th>
-                        </tr>
-                        <tr>
-                            <td><datepicker ng-model="begin_date" min-date="selectedEntry.date_begining" max-date="end_date"></datepicker></td>
-                            <td id="spacing"></td>
-                            <td><timepicker ng-model="begin_time" show-meridian="false"></timepicker></td>
-                        </tr>
-                    </table>
-                    <br>
-                    <table>
-                        <tr>
-                            <th>End</th>
-                        </tr>
-                        <tr>
-                            <td><datepicker ng-model="end_date" min-date="begin_date"></datepicker></td>
-                            <td id="spacing"></td>
-                            <td><timepicker ng-model="end_time" show-meridian="false" class="invalid-{{begin_time > end_time && begin_date >= end_date}}"></timepicker></td>
-                        </tr>
-                    </table>
-        			<br>
-                    <label>Location</label> 
-    				<input type="text" class="form-control" 
-						ng-model="selectedEntry.location">
-					<br>
-					<label>Description</label> 
-                    <textarea class="form-control" ng-model="selectedEntry.description"></textarea>
-					<br>
-          			<div class="btn-group">
-					    <input class="btn btn-primary" type="button" value="Save" ng-show="operation == 'update'"
-						    ng-click="confirmAction()" ng-disabled="begin_time > end_time && begin_date >= end_date"> 
-					    <input class="btn btn-default" type="button" value="Cancel" ng-show="operation == 'update'"
-				    		ng-click="cancelAction()">
-		    		</div>
-				</div>
 
-			</div>
-		</div>
-	</div>
-
-	<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.2/angular.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.2/angular.min.js"></script>
 	<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.2/angular-resource.min.js"></script>
     <script src="https://angular-ui.github.io/bootstrap/ui-bootstrap-tpls-0.11.0.js"></script>
 
@@ -269,7 +134,6 @@
                     if($scope.users[index].user_name.trim() == $scope.p_user.trim()){
                         $scope.loggedUser = $scope.users[index];
                         $scope.newEntry.participants.push($scope.loggedUser);
-                        console.log($scope.newEntry.participants[0].user_name);
                         return true;
                     }
                 }
@@ -440,5 +304,149 @@
 			}
 		}
 	</script>
+</head>
+<body>
+	<div id="wrap" ng-app="myevents" ng-controller="ManageController">
+		<div class="container">
+            <div class="username">
+                Logged in as <b>{{loggedUser.full_name}} ({{loggedUser.user_name}})</b>
+            </div>
+			<div class="alert alert-danger" ng-show="errorMessage">
+				{{errorMessage}}</div>
+            <div class="alert alert-info" ng-show="date.length == 0">
+                Looks like you have no events. You can add some by clicking the "New" button.
+            </div>
+            
+			<table class="table table-condensed" ng-show="data.length > 0">
+				<thead>
+					<tr>
+						<th>Begining</th>
+						<th></th>
+						<th>End</th>
+						<th></th>
+						<th>Location</th>
+						<th>Description</th>
+                        <th>Participants</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr class="selected-{{entry._selected_}}" ng-repeat="entry in data"
+						ng-click="showInfoForEntry(entry)">
+						<td>{{entry.date_begining | date:'fullDate'}}</td> 
+						<td>{{entry.time_begining | date:'HH:mm'}}</td> 
+						<td>{{entry.date_end | date:'fullDate'}}</td> 
+						<td>{{entry.time_end | date:'HH:mm'}}</td> 
+						<td>{{entry.location}}</td> 
+						<td>{{entry.description}}</td> 
+                        <td>{{entry.participants.toString()}}</td>
+					</tr>
+				</tbody>
+			</table>
+			<hr>
+			<br>
+			<input class="btn btn-default" type="button" value="New"
+				ng-click="setOperation('new')"
+				ng-disabled="errorMessage || operation == 'update'"> 
+            <div class="btn-group">
+                <input class="btn btn-default" type="button" value="Edit"
+                    ng-show="selectedEntry.creator_id == loggedUser.user_id"
+					ng-click="setOperation('update')"
+					ng-disabled="errorMessage || operation == 'new'"> 
+                <input class="btn btn-default" type="button" value="Delete"
+                    ng-show="selectedEntry.creator_id == loggedUser.user_id"
+					ng-click="delete()"
+					ng-disabled="errorMessage || operation == 'new' || operation == 'update'">
+			</div>
+			<br> <br>
+			<div>
+				<div ng-show="operation == 'new'">
+					<table>
+                        <tr>
+                            <th>Begining</th>
+                        </tr>
+                        <tr>
+                            <td><datepicker ng-model="begin_date" min-date="today" max-date="newEntry.date_end"></datepicker></td>
+                            <td class="spacing"></td>
+                            <td><timepicker ng-model="begin_time" show-meridian="false"></timepicker></td>
+                        </tr>
+                    </table>
+                    <br>
+                    <table>
+                        <tr>
+                            <th>End</th>
+                        </tr>
+                        <tr>
+                            <td><datepicker ng-model="newEntry.date_end" min-date="begin_date"></datepicker></td>
+                            <td class="spacing"></td>
+                            <td><timepicker ng-model="end_time" show-meridian="false" class="invalid-{{begin_time > end_time && begin_date >= newEntry.date_end}}"></timepicker></td>
+                        </tr>
+                    </table>
+    				<br>
+                    <label>Location</label> 
+    				<input type="text" class="form-control" 
+						ng-model="newEntry.location">
+					<br>
+					<label>Description</label> 
+                    <textarea class="form-control" ng-model="newEntry.description"></textarea>
+					<br>
+                    <label>Participants</label>
+                    <ul class="unstyled">
+                        <li ng-repeat="participant in newEntry.participants">
+                            <b tooltip="{{participant.email}}">{{participant.full_name}} ({{participant.user_name}})</b>
+                        </li>
+                    </ul>
+                    <alert type="danger" ng-show="pError">{{pError}}</alert>
+                    <input type="text" placeholder="Add participant..." ng-model="newParticipant">
+                    <input class="btn btn-primary" type="button" value="Add" ng-click="addParticipant(newEntry.participants)">
+                    <br>
+                    <div class="btn-group">
+    				    <input class="btn btn-primary" type="button" value="Save" ng-show="operation == 'new'"
+						    ng-click="confirmAction()" ng-disabled="begin_time > end_time && newEntry.date_begining >= newEntry.date_end"> 
+					    <input class="btn btn-default" type="button" value="Cancel" ng-show="operation == 'new'"
+					    	ng-click="cancelAction()">
+				    </div>
+				</div>
+				<div ng-show="operation == 'update'">
+					<table>
+                        <tr>
+                            <th>Begining</th>
+                        </tr>
+                        <tr>
+                            <td><datepicker ng-model="begin_date" min-date="selectedEntry.date_begining" max-date="end_date"></datepicker></td>
+                            <td class="spacing"></td>
+                            <td><timepicker ng-model="begin_time" show-meridian="false"></timepicker></td>
+                        </tr>
+                    </table>
+                    <br>
+                    <table>
+                        <tr>
+                            <th>End</th>
+                        </tr>
+                        <tr>
+                            <td><datepicker ng-model="end_date" min-date="begin_date"></datepicker></td>
+                            <td class="spacing"></td>
+                            <td><timepicker ng-model="end_time" show-meridian="false" class="invalid-{{begin_time > end_time && begin_date >= end_date}}"></timepicker></td>
+                        </tr>
+                    </table>
+        			<br>
+                    <label>Location</label> 
+    				<input type="text" class="form-control" 
+						ng-model="selectedEntry.location">
+					<br>
+					<label>Description</label> 
+                    <textarea class="form-control" ng-model="selectedEntry.description"></textarea>
+					<br>
+          			<div class="btn-group">
+					    <input class="btn btn-primary" type="button" value="Save" ng-show="operation == 'update'"
+						    ng-click="confirmAction()" ng-disabled="begin_time > end_time && begin_date >= end_date"> 
+					    <input class="btn btn-default" type="button" value="Cancel" ng-show="operation == 'update'"
+				    		ng-click="cancelAction()">
+		    		</div>
+				</div>
+
+			</div>
+		</div>
+	</div>
+
 </body>
 </html>
