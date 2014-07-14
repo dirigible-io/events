@@ -3,36 +3,20 @@ var ioLib = require('io');
 var entityLib = require('entity');
 
 // create entity by parsing JSON object from request body
-exports.createEvents = function() {
+exports.createUser = function() {
     var input = ioLib.read(request.getReader());
     var message = JSON.parse(input);
     var connection = datasource.getConnection();
     try {
-        var sql = "INSERT INTO EVENTS (";
-        sql += "EVENT_ID";
+        var sql = "INSERT INTO USER (";
+        sql += "USER_ID";
         sql += ",";
-        sql += "DATE_BEGINING";
+        sql += "USER_NAME";
         sql += ",";
-        sql += "TIME_BEGINING";
+        sql += "FULL_NAME";
         sql += ",";
-        sql += "DATE_END";
-        sql += ",";
-        sql += "TIME_END";
-        sql += ",";
-        sql += "LOCATION";
-        sql += ",";
-        sql += "DESCRIPTION";
-        sql += ",";
-        sql += "CREATOR_ID";
+        sql += "EMAIL";
         sql += ") VALUES ("; 
-        sql += "?";
-        sql += ",";
-        sql += "?";
-        sql += ",";
-        sql += "?";
-        sql += ",";
-        sql += "?";
-        sql += ",";
         sql += "?";
         sql += ",";
         sql += "?";
@@ -44,19 +28,11 @@ exports.createEvents = function() {
 
         var statement = connection.prepareStatement(sql);
         var i = 0;
-        var id = db.getNext('EVENTS_EVENT_ID');
+        var id = db.getNext('USER_USER_ID');
         statement.setInt(++i, id);
-        var js_date_date_begining =  new Date(Date.parse(message.date_begining));
-        statement.setDate(++i, new java.sql.Date(js_date_date_begining.getTime() + js_date_date_begining.getTimezoneOffset()*60*1000));
-        var js_date_time_begining =  new Date(Date.parse(message.time_begining)); 
-        statement.setTime(++i, new java.sql.Time(js_date_time_begining.getTime() + js_date_time_begining.getTimezoneOffset()*60*1000));
-        var js_date_date_end =  new Date(Date.parse(message.date_end));
-        statement.setDate(++i, new java.sql.Date(js_date_date_end.getTime() + js_date_date_end.getTimezoneOffset()*60*1000));
-        var js_date_time_end =  new Date(Date.parse(message.time_end)); 
-        statement.setTime(++i, new java.sql.Time(js_date_time_end.getTime() + js_date_time_end.getTimezoneOffset()*60*1000));
-        statement.setString(++i, message.location);
-        statement.setString(++i, message.description);
-        statement.setInt(++i, message.creator_id);
+        statement.setString(++i, message.user_name);
+        statement.setString(++i, message.full_name);
+        statement.setString(++i, message.email);
         statement.executeUpdate();
         response.getWriter().println(id);
         return id;
@@ -70,12 +46,11 @@ exports.createEvents = function() {
 };
 
 // read single entity by id and print as JSON object to response
-exports.readEventsEntity = function(id) {
+exports.readUserEntity = function(id) {
     var connection = datasource.getConnection();
-    response.setCharacterEncoding("UTF-8");
     try {
         var result = "";
-        var sql = "SELECT * FROM EVENTS WHERE " + pkToSQL();
+        var sql = "SELECT * FROM USER WHERE " + pkToSQL();
         var statement = connection.prepareStatement(sql);
         statement.setString(1, id);
         
@@ -98,16 +73,15 @@ exports.readEventsEntity = function(id) {
 };
 
 // read all entities and print them as JSON array to response
-exports.readEventsList = function(limit, offset, sort, desc) {
+exports.readUserList = function(limit, offset, sort, desc) {
     var connection = datasource.getConnection();
-    response.setCharacterEncoding("UTF-8");
     try {
         var result = [];
         var sql = "SELECT ";
         if (limit !== null && offset !== null) {
             sql += " " + db.createTopAndStart(limit, offset);
         }
-        sql += " * FROM EVENTS WHERE CURDATE() <= EVENTS.DATE_END";
+        sql += " * FROM USER";
         if (sort !== null) {
             sql += " ORDER BY " + sort;
         }
@@ -136,53 +110,33 @@ exports.readEventsList = function(limit, offset, sort, desc) {
 //create entity as JSON object from ResultSet current Row
 function createEntity(resultSet, data) {
     var result = {};
-	result.event_id = resultSet.getInt("EVENT_ID");
-    result.date_begining = new Date(resultSet.getDate("DATE_BEGINING").getTime() - resultSet.getDate("DATE_BEGINING").getTimezoneOffset()*60*1000);
-    result.time_begining = new Date(resultSet.getTime("TIME_BEGINING").getTime() - resultSet.getDate("TIME_BEGINING").getTimezoneOffset()*60*1000);
-    result.date_end = new Date(resultSet.getDate("DATE_END").getTime() - resultSet.getDate("DATE_END").getTimezoneOffset()*60*1000);
-    result.time_end = new Date(resultSet.getTime("TIME_END").getTime() - resultSet.getDate("TIME_END").getTimezoneOffset()*60*1000);
-    result.location = resultSet.getString("LOCATION");
-    result.description = resultSet.getString("DESCRIPTION");
-	result.creator_id = resultSet.getInt("CREATOR_ID");
+	result.user_id = resultSet.getInt("USER_ID");
+    result.user_name = resultSet.getString("USER_NAME");
+    result.full_name = resultSet.getString("FULL_NAME");
+    result.email = resultSet.getString("EMAIL");
     return result;
 };
 
 // update entity by id
-exports.updateEvents = function() {
+exports.updateUser = function() {
     var input = ioLib.read(request.getReader());
     var message = JSON.parse(input);
     var connection = datasource.getConnection();
     try {
-        var sql = "UPDATE EVENTS SET ";
-        sql += "DATE_BEGINING = ?";
+        var sql = "UPDATE USER SET ";
+        sql += "USER_NAME = ?";
         sql += ",";
-        sql += "TIME_BEGINING = ?";
+        sql += "FULL_NAME = ?";
         sql += ",";
-        sql += "DATE_END = ?";
-        sql += ",";
-        sql += "TIME_END = ?";
-        sql += ",";
-        sql += "LOCATION = ?";
-        sql += ",";
-        sql += "DESCRIPTION = ?";
-        sql += ",";
-        sql += "CREATOR_ID = ?";
-        sql += " WHERE EVENT_ID = ?";
+        sql += "EMAIL = ?";
+        sql += " WHERE USER_ID = ?";
         var statement = connection.prepareStatement(sql);
         var i = 0;
-        var js_date_date_begining =  new Date(Date.parse(message.date_begining));
-        statement.setDate(++i, new java.sql.Date(js_date_date_begining.getTime() + js_date_date_begining.getTimezoneOffset()*60*1000));
-        var js_date_time_begining =  new Date(Date.parse(message.time_begining)); 
-        statement.setTime(++i, new java.sql.Time(js_date_time_begining.getTime() + js_date_time_begining.getTimezoneOffset()*60*1000));
-        var js_date_date_end =  new Date(Date.parse(message.date_end));
-        statement.setDate(++i, new java.sql.Date(js_date_date_end.getTime() + js_date_date_end.getTimezoneOffset()*60*1000));
-        var js_date_time_end =  new Date(Date.parse(message.time_end)); 
-        statement.setTime(++i, new java.sql.Time(js_date_time_end.getTime() + js_date_time_end.getTimezoneOffset()*60*1000));
-        statement.setString(++i, message.location);
-        statement.setString(++i, message.description);
-        statement.setInt(++i, message.creator_id);
+        statement.setString(++i, message.user_name);
+        statement.setString(++i, message.full_name);
+        statement.setString(++i, message.email);
         var id = "";
-        id = message.event_id;
+        id = message.user_id;
         statement.setInt(++i, id);
         statement.executeUpdate();
         response.getWriter().println(id);
@@ -195,10 +149,10 @@ exports.updateEvents = function() {
 };
 
 // delete entity
-exports.deleteEvents = function(id) {
+exports.deleteUser = function(id) {
     var connection = datasource.getConnection();
     try {
-        var sql = "DELETE FROM EVENTS WHERE "+pkToSQL();
+        var sql = "DELETE FROM USER WHERE "+pkToSQL();
         var statement = connection.prepareStatement(sql);
         statement.setString(1, id);
         var resultSet = statement.executeUpdate();
@@ -211,12 +165,12 @@ exports.deleteEvents = function(id) {
     }
 };
 
-exports.countEvents = function() {
+exports.countUser = function() {
     var count = 0;
     var connection = datasource.getConnection();
     try {
         var statement = connection.createStatement();
-        var rs = statement.executeQuery('SELECT COUNT(*) FROM EVENTS');
+        var rs = statement.executeQuery('SELECT COUNT(*) FROM USER');
         while (rs.next()) {
             count = rs.getInt(1);
         }
@@ -229,53 +183,33 @@ exports.countEvents = function() {
     response.getWriter().println(count);
 };
 
-exports.metadataEvents = function() {
+exports.metadataUser = function() {
 	var entityMetadata = {};
-	entityMetadata.name = 'events';
+	entityMetadata.name = 'user';
 	entityMetadata.type = 'object';
 	entityMetadata.properties = [];
 	
-	var propertyevent_id = {};
-	propertyevent_id.name = 'event_id';
-	propertyevent_id.type = 'integer';
-	propertyevent_id.key = 'true';
-	propertyevent_id.required = 'true';
-    entityMetadata.properties.push(propertyevent_id);
+	var propertyuser_id = {};
+	propertyuser_id.name = 'user_id';
+	propertyuser_id.type = 'integer';
+	propertyuser_id.key = 'true';
+	propertyuser_id.required = 'true';
+    entityMetadata.properties.push(propertyuser_id);
 
-	var propertydate_begining = {};
-	propertydate_begining.name = 'date_begining';
-    propertydate_begining.type = 'date';
-    entityMetadata.properties.push(propertydate_begining);
+	var propertyuser_name = {};
+	propertyuser_name.name = 'user_name';
+    propertyuser_name.type = 'string';
+    entityMetadata.properties.push(propertyuser_name);
 
-	var propertytime_begining = {};
-	propertytime_begining.name = 'time_begining';
-    propertytime_begining.type = 'time';
-    entityMetadata.properties.push(propertytime_begining);
+	var propertyfull_name = {};
+	propertyfull_name.name = 'full_name';
+    propertyfull_name.type = 'string';
+    entityMetadata.properties.push(propertyfull_name);
 
-	var propertydate_end = {};
-	propertydate_end.name = 'date_end';
-    propertydate_end.type = 'date';
-    entityMetadata.properties.push(propertydate_end);
-
-	var propertytime_end = {};
-	propertytime_end.name = 'time_end';
-    propertytime_end.type = 'time';
-    entityMetadata.properties.push(propertytime_end);
-
-	var propertylocation = {};
-	propertylocation.name = 'location';
-    propertylocation.type = 'string';
-    entityMetadata.properties.push(propertylocation);
-
-	var propertydescription = {};
-	propertydescription.name = 'description';
-    propertydescription.type = 'string';
-    entityMetadata.properties.push(propertydescription);
-
-	var propertycreator_id = {};
-	propertycreator_id.name = 'creator_id';
-	propertycreator_id.type = 'integer';
-    entityMetadata.properties.push(propertycreator_id);
+	var propertyemail = {};
+	propertyemail.name = 'email';
+    propertyemail.type = 'string';
+    entityMetadata.properties.push(propertyemail);
 
 
     response.getWriter().println(JSON.stringify(entityMetadata));
@@ -284,7 +218,7 @@ exports.metadataEvents = function() {
 function getPrimaryKeys(){
     var result = [];
     var i = 0;
-    result[i++] = 'EVENT_ID';
+    result[i++] = 'USER_ID';
     if (result === 0) {
         throw new Exception("There is no primary key");
     } else if(result.length > 1) {
@@ -302,7 +236,7 @@ function pkToSQL(){
     return pks[0] + " = ?";
 }
 
-exports.processEvents = function() {
+exports.processUser = function() {
 	
 	// get method type
 	var method = request.getMethod();
@@ -331,25 +265,25 @@ exports.processEvents = function() {
 		// switch based on method type
 		if ((method === 'POST')) {
 			// create
-			exports.createEvents();
+			exports.createUser();
 		} else if ((method === 'GET')) {
 			// read
 			if (id) {
-				exports.readEventsEntity(id);
+				exports.readUserEntity(id);
 			} else if (count !== null) {
-				exports.countEvents();
+				exports.countUser();
 			} else if (metadata !== null) {
-				exports.metadataEvents();
+				exports.metadataUser();
 			} else {
-				exports.readEventsList(limit, offset, sort, desc);
+				exports.readUserList(limit, offset, sort, desc);
 			}
 		} else if ((method === 'PUT')) {
 			// update
-			exports.updateEvents();    
+			exports.updateUser();    
 		} else if ((method === 'DELETE')) {
 			// delete
 			if(entityLib.isInputParameterValid(idParameter)){
-				exports.deleteEvents(id);
+				exports.deleteUser(id);
 			}
 		} else {
 			entityLib.printError(javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST, 1, "Invalid HTTP Method");

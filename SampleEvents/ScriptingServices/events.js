@@ -1,3 +1,3 @@
-var entityEvent = require('SampleEvents/events');
+var entityEvents = require('SampleEvents/events');
 
-entityEvent.processEvent();
+entityEvents.processEvents();
