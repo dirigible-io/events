@@ -40,13 +40,13 @@
         angular.module('myevents', ['ui.bootstrap']);
 		function ManageController($scope, $http){
 			
-			var url = '/dirigible/js/SampleEvents/user_service.js';
+			var url = '/dirigible/services/js/SampleEvents/user_service.js';
             $http.get(url)
             .success(function(data){
                 $scope.p_user = data
             });
 			
-             url = '/dirigible/js/SampleEvents/user_list.js';
+             url = '/dirigible/services/js/SampleEvents/user_list.js';
             $http.get(url)
             .success(function(data){
                 $scope.users = data;
@@ -64,7 +64,7 @@
                 }
             });
             
-            url = '/dirigible/js/SampleEvents/events.js';
+            url = '/dirigible/services/js/SampleEvents/events.js';
 			$http.get(url)
 			.success(function(data){
 				$scope.data = data;
@@ -114,7 +114,7 @@
             }
             
             function refreshUserData(){
-                var userUrl = '/dirigible/js/SampleEvents/user_list.js';
+                var userUrl = '/dirigible/services/js/SampleEvents/user_list.js';
                 
                 $http.get(url)
                 .success(function(data){
